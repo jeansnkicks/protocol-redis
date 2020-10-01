@@ -1,7 +1,7 @@
 # protocol-redis
 Terraform for persistent redis KV store for protocol
 
-# Set up this repo
+## Set up the Redis KV store on an AWS account
 
 Install Terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli
 
@@ -25,3 +25,12 @@ Apply the terraform config (you will be prompted with the plan before it execute
 ```
 terraform apply
 ```
+
+## Delete the Redis KV store
+
+To tear down the redis:
+```
+terraform destroy
+```
+
+(You may have to run `terraform destroy` twice to destroy the dependencies)
