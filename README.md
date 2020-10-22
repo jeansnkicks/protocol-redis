@@ -48,6 +48,7 @@ terraform destroy
 ## TODOs
 
 - Permanent fix for CacheParameterGroupNotFound issue.
-- Turn on AUTH with password
+- Turn on AUTH with password (Replace default redis user and deactivate default redis user)
 - Turn on multi AZ support for cluster
 - Implement backup system (or rearchitect to repopulate redis from other sources)
+- Figure out how to connect to the cluster from within the VPC
