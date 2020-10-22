@@ -4,7 +4,7 @@ provider "aws" {
 
 resource "aws_elasticache_parameter_group" "default" {
   name   = "cache-params"
-  family = "redis5.0"
+  family = "redis6.x"
 
   parameter {
     name  = "activerehashing"
@@ -26,6 +26,8 @@ resource "aws_elasticache_replication_group" "example" {
   number_cache_clusters         = 2
   parameter_group_name          = "cache-params"
   port                          = 6379
+  transit_encryption_enabled = true
+  at_rest_encryption_enabled = true
 
   lifecycle {
     ignore_changes = [number_cache_clusters]
