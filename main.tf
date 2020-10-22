@@ -32,6 +32,10 @@ resource "aws_elasticache_replication_group" "example" {
   lifecycle {
     ignore_changes = [number_cache_clusters]
   }
+
+  depends_on = [
+    aws_elasticache_parameter_group.default,
+  ]
 }
 
 resource "aws_elasticache_cluster" "replica" {
