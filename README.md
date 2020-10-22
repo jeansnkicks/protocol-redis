@@ -26,6 +26,16 @@ Apply the terraform config (you will be prompted with the plan before it execute
 terraform apply
 ```
 
+NOTE: Known error:
+```
+Error: Error creating Elasticache Replication Group: CacheParameterGroupNotFound: CacheParameterGroup not found: cache-params
+	status code: 404, request id: 1fc5439b-70be-41fd-bfbb-f14a6cab1587
+```
+
+If this occurs retry the `terraform apply`. It occurs because the replication
+group requires the cache parameter group and the cache parameter group is
+created but not ready when the replication group creation is attempted.
+
 ## Delete the Redis KV store
 
 To tear down the redis:
@@ -34,3 +44,10 @@ terraform destroy
 ```
 
 (You may have to run `terraform destroy` twice to destroy the dependencies)
+
+## TODOs
+
+- Permanent fix for CacheParameterGroupNotFound issue.
+- Turn on AUTH with password
+- Turn on multi AZ support for cluster
+- Implement backup system (or rearchitect to repopulate redis from other sources)
