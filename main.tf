@@ -2,45 +2,83 @@ provider "aws" {
   region = "eu-west-2"
 }
 
-resource "aws_elasticache_parameter_group" "default" {
-  name   = "cache-params"
-  family = "redis6.x"
-
-  parameter {
-    name  = "activerehashing"
-    value = "yes"
-  }
-
-  parameter {
-    name  = "min-replicas-to-write"
-    value = "2"
+data "aws_security_group" "k8snodes" {
+  filter {
+    name = "description"
+    values = ["Security group for nodes"]
   }
 }
 
-resource "aws_elasticache_replication_group" "example" {
-  automatic_failover_enabled    = true
-  availability_zones            = ["eu-west-2a", "eu-west-2b"]
-  replication_group_id          = "redis-tf-rep-group-1"
-  replication_group_description = "Redis Elasticache Replication Group"
-  node_type                     = "cache.m4.large"
-  number_cache_clusters         = 2
-  parameter_group_name          = "cache-params"
-  port                          = 6379
-  transit_encryption_enabled = true
-  at_rest_encryption_enabled = true
+module "vpc" {
+  source = "cloudposse/vpc"
+  versioin = "0.17.0"
 
-  lifecycle {
-    ignore_changes = [number_cache_clusters]
-  }
+  cidr_block = "172.16.0.0/16"
 
-  depends_on = [
-    aws_elasticache_parameter_group.default,
+  context = module.this.context
+
+  # resulting fields:
+  #vpc_id
+  #igw_id
+  #vpc_cidr_block
+  #vpc_default_security_group_id
+}
+
+module "subnets" {
+  source = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.30.0"
+
+  availability_zones   = ["eu-west-2a", "eu-west-2b"]
+  vpc_id               = module.vpc.vpc_id
+  igw_id               = module.vpc.igw_id
+  cidr_block           = module.vpc.vpc_cidr_block
+  nat_gateway_enabled  = false
+  nat_instance_enabled = false
+
+  context = module.this.context
+
+  # resulting fields:
+  #private_subnet_ids
+}
+
+module "elasticache-redis" {
+  source  = "cloudposse/elasticache-redis/aws"
+  version = "0.25.0"
+
+  # VPC Networking
+  vpc_id                           = module.vpc.vpc_id
+  allowed_security_groups          = [module.vpc.vpc_default_security_group_id,data.aws_security_group.k8snodes.id]
+  subnets                          = module.subnets.private_subnet_ids
+
+  # Do not use DNS
+  zone_id                          = ""
+
+  # Not sure if we need to set both of these
+  engine_version                   = "6.x"
+  family                           = "redis6.x"
+
+  # Nodes
+  availability_zones               = ["eu-west-2a", "eu-west-2b"]
+  cluster_size                     = 2
+  instance_type                    = "cache.m4.large"
+
+  # AWS flags
+  apply_immediately                = true
+
+  # Redis Flags
+  automatic_failover_enabled       = true
+  at_rest_encryption_enabled       = true
+  transit_encryption_enabled       = true
+  cloudwatch_metric_alarms_enabled = true
+
+  parameter = [
+    {
+      name  = "activerehashing"
+      value = "yes"
+    },
+    {
+      name  = "min-replicas-to-write"
+      value = "2"
+    }
   ]
-}
 
-resource "aws_elasticache_cluster" "replica" {
-  count = 1
-
-  cluster_id           = "tf-rep-group-1-${count.index}"
-  replication_group_id = aws_elasticache_replication_group.example.id
 }
