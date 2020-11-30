@@ -10,12 +10,9 @@ data "aws_security_group" "k8snodes" {
 }
 
 module "vpc" {
-  source = "cloudposse/vpc"
-  versioin = "0.17.0"
+  source = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.18.0"
 
   cidr_block = "172.16.0.0/16"
-
-  context = module.this.context
 
   # resulting fields:
   #vpc_id
@@ -25,7 +22,7 @@ module "vpc" {
 }
 
 module "subnets" {
-  source = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.30.0"
+  source = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.32.0"
 
   availability_zones   = ["eu-west-2a", "eu-west-2b"]
   vpc_id               = module.vpc.vpc_id
@@ -33,8 +30,6 @@ module "subnets" {
   cidr_block           = module.vpc.vpc_cidr_block
   nat_gateway_enabled  = false
   nat_instance_enabled = false
-
-  context = module.this.context
 
   # resulting fields:
   #private_subnet_ids

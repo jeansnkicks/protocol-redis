@@ -3,7 +3,16 @@ Terraform for persistent redis KV store for protocol
 
 ## Set up the Redis KV store on an AWS account
 
-Install Terraform: https://learn.hashicorp.com/tutorials/terraform/install-cli
+Install tfenv:
+```
+brew install tfenv
+```
+
+Install Terraform at 0.12 (the current versions of cloudposse templates don't work with terraform 13 yet):
+```
+tfenv install 0.12.29
+tfenv use 0.12.29
+```
 
 Clone the repo:
 ```
@@ -26,15 +35,14 @@ Apply the terraform config (you will be prompted with the plan before it execute
 terraform apply
 ```
 
-NOTE: Known error:
+### Note
+
+Currently this results in an error
+
 ```
-Error: Error creating Elasticache Replication Group: CacheParameterGroupNotFound: CacheParameterGroup not found: cache-params
-	status code: 404, request id: 1fc5439b-70be-41fd-bfbb-f14a6cab1587
+Error: expected length of replication_group_id to be in the range (1 - 40)
 ```
 
-If this occurs retry the `terraform apply`. It occurs because the replication
-group requires the cache parameter group and the cache parameter group is
-created but not ready when the replication group creation is attempted.
 
 ## Delete the Redis KV store
 
@@ -47,8 +55,6 @@ terraform destroy
 
 ## TODOs
 
-- Permanent fix for CacheParameterGroupNotFound issue.
-- Turn on AUTH with password (Replace default redis user and deactivate default redis user)
-- Turn on multi AZ support for cluster
+- Fix Error: expected length of replication_group_id to be in the range (1 - 40)
 - Implement backup system (or rearchitect to repopulate redis from other sources)
 - Figure out how to connect to the cluster from within the VPC
