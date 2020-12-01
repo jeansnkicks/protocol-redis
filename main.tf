@@ -39,6 +39,11 @@ module "elasticache-redis" {
   source  = "cloudposse/elasticache-redis/aws"
   version = "0.25.0"
 
+  namespace = "kiva"
+  # TODO: make stage configurable
+  stage = "dev"
+  name = "kvstore"
+
   # VPC Networking
   vpc_id                           = module.vpc.vpc_id
   allowed_security_groups          = [module.vpc.vpc_default_security_group_id,data.aws_security_group.k8snodes.id]
